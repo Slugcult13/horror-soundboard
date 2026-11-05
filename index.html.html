@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classic Horror Soundboard & Game</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #0b0b0f;
+            color: #ffffff;
+            user-select: none;
+        }
+        
+        .font-horror {
+            font-family: 'Creepster', cursive;
+        }
+
+        /* Mobile Phone Mockup Shadow & Frame */
+        .phone-container {
+            max-width: 420px;
+            box-shadow: 0 0 50px rgba(185, 28, 28, 0.4), 0 0 20px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Glitch & Terror Effects */
+        @keyframes flash-red {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; background-color: rgba(220, 38, 38, 0.5); }
+        }
+
+        .screen-flash {
+            animation: flash-red 0.2s ease-in-out 2;
+        }
+
+        .shake {
+            animation: shake-anim 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake-anim {
+            10%, 90% { transform: translate3d(-2px, 0, 0); }
+            20%, 80% { transform: translate3d(4px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-8px, 0, 0); }
+            40%, 60% { transform: translate3d(8px, 0, 0); }
+        }
+
+        /* Card Hover Effects */
+        .horror-card {
+            transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: transform;
+            touch-action: manipulation;
+        }
+        .horror-card:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-2 sm:p-6 bg-slate-950">
+
+    <!-- Main Container styled like MIT App Inventor Test Screen -->
+    <div class="phone-container w-full bg-black rounded-3xl border-4 border-zinc-800 overflow-hidden flex flex-col h-[840px] relative">
+        
+        <!-- Phone Status Bar -->
+        <div class="bg-zinc-900 text-zinc-400 text-xs px-4 py-1 flex justify-between items-center border-b border-zinc-800 select-none">
+            <div class="flex items-center gap-1">
+                <i class="fa-solid fa-signal"></i>
+                <span class="font-semibold text-[10px]">AppInventor</span>
+            </div>
+            <div id="clockDisplay" class="font-mono">12:00</div>
+            <div class="flex items-center gap-1.5">
+                <i class="fa-solid fa-wifi text-[10px]"></i>
+                <i class="fa-solid fa-battery-full text-green-500"></i>
+            </div>
+        </div>
+
+        <!-- App Header (Screen1 Title Bar) -->
+        <div class="bg-indigo-700 text-white px-4 py-3 flex items-center justify-between shadow-md">
+            <h1 class="font-bold text-lg tracking-wide flex items-center gap-2">
+                <i class="fa-solid fa-ghost text-red-500"></i> Screen1
+            </h1>
+            <div class="flex items-center space-x-2">
+                <button id="modeToggleBtn" type="button" class="bg-indigo-900 hover:bg-indigo-800 text-xs text-yellow-300 font-semibold px-2.5 py-1 rounded border border-indigo-500 transition flex items-center gap-1 cursor-pointer z-20 active:scale-95">
+                    <i class="fa-solid fa-gamepad"></i> <span id="modeBtnText">Play Game</span>
+                </button>
+                <i class="fa-solid fa-ellipsis-vertical text-zinc-300 cursor-pointer"></i>
+            </div>
+        </div>
+
+        <!-- App Header Title Banner -->
+        <div class="bg-black py-2 text-center border-b border-zinc-900">
+            <span class="bg-red-700 text-black text-xs font-black uppercase tracking-widest px-3 py-0.5 rounded-sm font-horror text-sm">
+                Classic Horror
+            </span>
+            
+            <!-- Checkbox: Silent Terror Mode -->
+            <div class="mt-2 flex items-center justify-center gap-2">
+                <input type="checkbox" id="silentTerrorCheck" class="w-4 h-4 accent-red-600 rounded cursor-pointer">
+                <label for="silentTerrorCheck" class="text-xs text-zinc-200 font-semibold cursor-pointer select-none">
+                    Silent Terror Mode*
+                </label>
+            </div>
+        </div>
+
+        <!-- Notification Alert Toast -->
+        <div id="notifierToast" class="absolute top-28 left-4 right-4 bg-zinc-900 border-2 border-red-600 text-white p-3 rounded-lg shadow-2xl flex items-center justify-between opacity-0 pointer-events-none transition-all duration-150 z-50 transform -translate-y-4">
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-triangle-exclamation text-red-500 text-lg"></i>
+                <span id="notifierMessage" class="text-sm font-bold tracking-wide">Notice message</span>
+            </div>
+            <button id="closeNotifierBtn" class="text-zinc-400 hover:text-white pointer-events-auto p-1"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <!-- Soundboard View (2x2 Grid as seen in Screenshot) -->
+        <div id="soundboardView" class="flex-1 bg-black p-3 flex flex-col justify-center items-center">
+            
+            <!-- 2x2 Grid Layout for Horror Monsters -->
+            <div class="grid grid-cols-2 gap-2.5 w-full max-w-[340px] aspect-square">
+                
+                <!-- Frankenstein Button -->
+                <button data-monster="frankenstein" class="monster-btn horror-card relative bg-zinc-900 rounded-lg overflow-hidden border-2 border-zinc-700 hover:border-green-500 focus:outline-none group cursor-pointer">
+                    <svg class="w-full h-full object-cover pointer-events-none" viewBox="0 0 200 200">
+                        <rect width="200" height="200" fill="#18181b"/>
+                        <path d="M 50 40 L 150 40 L 150 140 Q 150 170 100 170 Q 50 170 50 140 Z" fill="#4a5568"/>
+                        <rect x="45" y="40" width="110" height="45" fill="#1a202c"/>
+                        <line x1="70" y1="65" x2="130" y2="65" stroke="#a0aec0" stroke-width="4"/>
+                        <line x1="85" y1="58" x2="85" y2="72" stroke="#a0aec0" stroke-width="3"/>
+                        <line x1="115" y1="58" x2="115" y2="72" stroke="#a0aec0" stroke-width="3"/>
+                        <rect x="65" y="95" width="25" height="10" fill="#edf2f7"/>
+                        <rect x="110" y="95" width="25" height="10" fill="#edf2f7"/>
+                        <rect x="75" y="97" width="10" height="8" fill="#000"/>
+                        <rect x="115" y="97" width="10" height="8" fill="#000"/>
+                        <rect x="30" y="130" width="20" height="12" fill="#cbd5e0"/>
+                        <rect x="150" y="130" width="20" height="12" fill="#cbd5e0"/>
+                        <line x1="75" y1="140" x2="125" y2="140" stroke="#000" stroke-width="5"/>
+                    </svg>
+                    <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black via-black/70 to-transparent p-1.5 text-center pointer-events-none">
+                        <span class="text-xs font-bold text-green-400 uppercase tracking-wider">Frankenstein</span>
+                    </div>
+                </button>
+
+                <!-- Jaws Button -->
+                <button data-monster="jaws" class="monster-btn horror-card relative bg-zinc-900 rounded-lg overflow-hidden border-2 border-zinc-700 hover:border-blue-500 focus:outline-none group cursor-pointer">
+                    <svg class="w-full h-full object-cover pointer-events-none" viewBox="0 0 200 200">
+                        <defs>
+                            <linearGradient id="ocean" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#38bdf8"/>
+                                <stop offset="100%" stop-color="#0369a1"/>
+                            </linearGradient>
+                        </defs>
+                        <rect width="200" height="200" fill="url(#ocean)"/>
+                        <polygon points="20,200 100,50 180,200" fill="#94a3b8"/>
+                        <polygon points="50,200 100,100 150,200" fill="#991b1b"/>
+                        <polygon points="55,200 65,170 75,200" fill="#fff"/>
+                        <polygon points="75,200 85,160 95,200" fill="#fff"/>
+                        <polygon points="95,200 105,150 115,200" fill="#fff"/>
+                        <polygon points="115,200 125,160 135,200" fill="#fff"/>
+                        <polygon points="135,200 145,170 155,200" fill="#fff"/>
+                        <circle cx="70" cy="90" r="6" fill="#000"/>
+                    </svg>
+                    <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black via-black/70 to-transparent p-1.5 text-center pointer-events-none">
+                        <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">Jaws</span>
+                    </div>
+                </button>
+
+                <!-- Psycho Button -->
+                <button data-monster="psycho" class="monster-btn horror-card relative bg-zinc-900 rounded-lg overflow-hidden border-2 border-zinc-700 hover:border-yellow-500 focus:outline-none group cursor-pointer">
+                    <svg class="w-full h-full object-cover pointer-events-none" viewBox="0 0 200 200">
+                        <rect width="200" height="200" fill="#27272a"/>
+                        <circle cx="100" cy="90" r="50" fill="#e4e4e7"/>
+                        <ellipse cx="100" cy="115" rx="18" ry="25" fill="#000"/>
+                        <circle cx="80" cy="75" r="14" fill="#000"/>
+                        <circle cx="120" cy="75" r="14" fill="#000"/>
+                        <circle cx="80" cy="75" r="4" fill="#fff"/>
+                        <circle cx="120" cy="75" r="4" fill="#fff"/>
+                        <path d="M 45 90 Q 50 30 100 30 Q 150 30 155 90 Z" fill="#18181b"/>
+                    </svg>
+                    <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black via-black/70 to-transparent p-1.5 text-center pointer-events-none">
+                        <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">Psycho</span>
+                    </div>
+                </button>
+
+                <!-- Dracula Button -->
+                <button data-monster="dracula" class="monster-btn horror-card relative bg-zinc-900 rounded-lg overflow-hidden border-2 border-zinc-700 hover:border-red-600 focus:outline-none group cursor-pointer">
+                    <svg class="w-full h-full object-cover pointer-events-none" viewBox="0 0 200 200">
+                        <rect width="200" height="200" fill="#09090b"/>
+                        <polygon points="10,200 100,100 190,200" fill="#7f1d1d"/>
+                        <polygon points="30,200 100,120 170,200" fill="#000"/>
+                        <ellipse cx="100" cy="85" rx="35" ry="45" fill="#e2e8f0"/>
+                        <path d="M 65 75 Q 85 85 100 50 Q 115 85 135 75 Q 70 35 65 75 Z" fill="#000"/>
+                        <circle cx="88" cy="85" r="5" fill="#dc2626"/>
+                        <circle cx="112" cy="85" r="5" fill="#dc2626"/>
+                        <path d="M 85 110 Q 100 120 115 110" stroke="#000" stroke-width="3" fill="none"/>
+                        <polygon points="88,110 92,110 90,118" fill="#fff"/>
+                        <polygon points="108,110 112,110 110,118" fill="#fff"/>
+                    </svg>
+                    <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black via-black/70 to-transparent p-1.5 text-center pointer-events-none">
+                        <span class="text-xs font-bold text-red-500 uppercase tracking-wider">Dracula</span>
+                    </div>
+                </button>
+
+            </div>
+
+            <!-- Quick Ambient Audio Trigger Bar -->
+            <div class="w-full max-w-[340px] mt-6 grid grid-cols-2 gap-2">
+                <button id="organBtn" class="bg-zinc-900 border border-zinc-700 hover:border-purple-500 active:scale-95 text-zinc-300 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-music text-purple-400"></i> Organ Chord
+                </button>
+                <button id="thunderBtn" class="bg-zinc-900 border border-zinc-700 hover:border-amber-500 active:scale-95 text-zinc-300 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-bolt text-amber-400"></i> Thunder Strike
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Interactive Horror Match Game View -->
+        <div id="gameView" class="hidden flex-1 bg-zinc-950 p-4 flex flex-col justify-between items-center text-center">
+            
+            <div class="w-full">
+                <div class="flex justify-between items-center mb-2 px-2">
+                    <span class="text-xs text-zinc-400 font-bold uppercase tracking-wider">Score: <span id="gameScore" class="text-red-500 text-sm">0</span></span>
+                    <span class="text-xs text-zinc-400 font-bold uppercase tracking-wider">Time: <span id="gameTimer" class="text-yellow-500 text-sm">30s</span></span>
+                </div>
+                
+                <h2 id="targetQuote" class="font-horror text-2xl text-red-500 my-4 min-h-[60px] flex items-center justify-center bg-black/60 p-3 rounded-lg border border-red-900/50 select-none">
+                    "Press Start to Play!"
+                </h2>
+            </div>
+
+            <!-- Game Option Buttons -->
+            <div id="gameOptions" class="grid grid-cols-2 gap-3 w-full max-w-[340px] my-auto">
+                <button data-guess="dracula" class="game-guess-btn bg-zinc-900 border border-zinc-700 active:scale-95 p-3 rounded-lg font-bold text-sm text-red-400 hover:bg-red-950/40 cursor-pointer">Dracula</button>
+                <button data-guess="frankenstein" class="game-guess-btn bg-zinc-900 border border-zinc-700 active:scale-95 p-3 rounded-lg font-bold text-sm text-green-400 hover:bg-green-950/40 cursor-pointer">Frankenstein</button>
+                <button data-guess="psycho" class="game-guess-btn bg-zinc-900 border border-zinc-700 active:scale-95 p-3 rounded-lg font-bold text-sm text-yellow-400 hover:bg-yellow-950/40 cursor-pointer">Psycho</button>
+                <button data-guess="jaws" class="game-guess-btn bg-zinc-900 border border-zinc-700 active:scale-95 p-3 rounded-lg font-bold text-sm text-blue-400 hover:bg-blue-950/40 cursor-pointer">Jaws</button>
+            </div>
+
+            <!-- Start / Reset Game Button -->
+            <button id="startGameBtn" class="w-full max-w-[340px] bg-red-700 hover:bg-red-600 active:scale-98 text-white font-bold py-3 rounded-lg uppercase tracking-wider shadow-lg transition cursor-pointer select-none">
+                Start Sound Match Game
+            </button>
+        </div>
+
+        <!-- AppInventor Footer -->
+        <div class="bg-zinc-900 border-t border-zinc-800 p-2 text-center text-[11px] text-zinc-400 flex justify-around items-center">
+            <span class="flex items-center gap-1"><i class="fa-solid fa-volume-high text-xs"></i> Sound Engine Active</span>
+            <span class="flex items-center gap-1"><i class="fa-solid fa-mobile-retro text-xs"></i> Haptic FX Ready</span>
+        </div>
+
+    </div>
+
+    <script>
+        // High-Performance Zero-Latency Pre-Buffered Web Audio Engine
+        let audioCtx = null;
+        let soundBuffers = {};
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+                prebakeSounds();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        // Synthesize signature audio buffers into memory ahead of time to eliminate initial play latency
+        function prebakeSounds() {
+            if (Object.keys(soundBuffers).length > 0) return;
+
+            const sampleRate = audioCtx.sampleRate;
+
+            // 1. Dracula: Deep Pipe Organ Minor Chord
+            const dracLen = sampleRate * 0.7;
+            const dracBuf = audioCtx.createBuffer(1, dracLen, sampleRate);
+            const dracData = dracBuf.getChannelData(0);
+            const freqs = [130.81, 155.56, 196.00, 261.63]; // C minor
+            for (let i = 0; i < dracLen; i++) {
+                const t = i / sampleRate;
+                const env = Math.exp(-3 * t);
+                let wave = 0;
+                freqs.forEach(f => {
+                    wave += 0.25 * (Math.sin(2 * Math.PI * f * t) + 0.5 * Math.sin(4 * Math.PI * f * t));
+                });
+                dracData[i] = wave * env;
+            }
+            soundBuffers.dracula = dracBuf;
+
+            // 2. Frankenstein: Thunderous Crash & Electrical Sub-Bass
+            const frankLen = sampleRate * 0.8;
+            const frankBuf = audioCtx.createBuffer(1, frankLen, sampleRate);
+            const frankData = frankBuf.getChannelData(0);
+            for (let i = 0; i < frankLen; i++) {
+                const t = i / sampleRate;
+                const env = Math.exp(-4 * t);
+                const noise = (Math.random() * 2 - 1) * 0.6;
+                const sub = Math.sin(2 * Math.PI * 45 * t);
+                frankData[i] = (noise + sub * 0.8) * env;
+            }
+            soundBuffers.frankenstein = frankBuf;
+
+            // 3. Psycho: High-Pitched Violin Screech Striking Motifs
+            const psychoLen = sampleRate * 0.5;
+            const psychoBuf = audioCtx.createBuffer(1, psychoLen, sampleRate);
+            const psychoData = psychoBuf.getChannelData(0);
+            for (let i = 0; i < psychoLen; i++) {
+                const t = i / sampleRate;
+                const cycle = t % 0.12;
+                const env = Math.exp(-15 * cycle);
+                const screech1 = Math.sin(2 * Math.PI * 2616.26 * t); // E7
+                const screech2 = Math.sin(2 * Math.PI * 2793.83 * t); // F7
+                psychoData[i] = (screech1 + screech2) * 0.4 * env;
+            }
+            soundBuffers.psycho = psychoBuf;
+
+            // 4. Jaws: Two-Note Low Suspense Motif (D-Eb)
+            const jawsLen = sampleRate * 0.7;
+            const jawsBuf = audioCtx.createBuffer(1, jawsLen, sampleRate);
+            const jawsData = jawsBuf.getChannelData(0);
+            for (let i = 0; i < jawsLen; i++) {
+                const t = i / sampleRate;
+                let freq = 41.20; // E1
+                let env = Math.exp(-8 * (t % 0.35));
+                if (t >= 0.35) {
+                    freq = 43.65; // F1
+                }
+                const wave = Math.sin(2 * Math.PI * freq * t) + 0.5 * Math.sin(4 * Math.PI * freq * t);
+                jawsData[i] = wave * 0.7 * env;
+            }
+            soundBuffers.jaws = jawsBuf;
+
+            // 5. Organ Chord Quick Trigger
+            const organLen = sampleRate * 1.0;
+            const organBuf = audioCtx.createBuffer(1, organLen, sampleRate);
+            const organData = organBuf.getChannelData(0);
+            for (let i = 0; i < organLen; i++) {
+                const t = i / sampleRate;
+                const env = Math.exp(-2.5 * t);
+                const w = Math.sin(2 * Math.PI * 110 * t) + Math.sin(2 * Math.PI * 164.81 * t) + Math.sin(2 * Math.PI * 220 * t);
+                organData[i] = w * 0.3 * env;
+            }
+            soundBuffers.organ = organBuf;
+
+            // 6. Thunder Strike
+            const thunLen = sampleRate * 0.9;
+            const thunBuf = audioCtx.createBuffer(1, thunLen, sampleRate);
+            const thunData = thunBuf.getChannelData(0);
+            for (let i = 0; i < thunLen; i++) {
+                const t = i / sampleRate;
+                const env = Math.exp(-3.5 * t);
+                thunData[i] = (Math.random() * 2 - 1) * env;
+            }
+            soundBuffers.thunder = thunBuf;
+        }
+
+        // Instant play helper with zero latency
+        function playBuffer(key) {
+            const ctx = getAudioContext();
+            if (!soundBuffers[key]) prebakeSounds();
+            if (soundBuffers[key]) {
+                const source = ctx.createBufferSource();
+                source.buffer = soundBuffers[key];
+                source.connect(ctx.destination);
+                source.start(0);
+            }
+        }
+
+        const horrorData = {
+            dracula: { quote: "I want to suck your blood...", playSound: () => playBuffer('dracula') },
+            frankenstein: { quote: "IT'S ALIVE!", playSound: () => playBuffer('frankenstein') },
+            psycho: { quote: "Eek!", playSound: () => playBuffer('psycho') },
+            jaws: { quote: "I think you're going need a bigger boat!", playSound: () => playBuffer('jaws') }
+        };
+
+        function playOrganFx() { playBuffer('organ'); }
+        function playThunderFx() { playBuffer('thunder'); }
+
+        function handleHorrorClick(key) {
+            getAudioContext();
+            const isSilentMode = document.getElementById('silentTerrorCheck').checked;
+            const data = horrorData[key];
+
+            triggerScreenVibe();
+
+            if (isSilentMode) {
+                if (navigator.vibrate) navigator.vibrate(100);
+                showAlert(data.quote);
+            } else {
+                data.playSound();
+            }
+        }
+
+        let toastTimeout;
+        function showAlert(msg) {
+            const toast = document.getElementById('notifierToast');
+            const msgEl = document.getElementById('notifierMessage');
+            msgEl.textContent = msg;
+            
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateY(0px)';
+
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(hideNotifier, 1200);
+        }
+
+        function hideNotifier() {
+            const toast = document.getElementById('notifierToast');
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(-16px)';
+        }
+
+        function triggerScreenVibe() {
+            const container = document.querySelector('.phone-container');
+            container.style.transform = 'translate3d(4px, 0, 0)';
+            setTimeout(() => { container.style.transform = 'translate3d(-4px, 0, 0)'; }, 40);
+            setTimeout(() => { container.style.transform = 'translate3d(0, 0, 0)'; }, 80);
+        }
+
+        // Fast Direct Pointer Handlers
+        function bindFastClick(element, handler) {
+            if (!element) return;
+            element.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                handler(e);
+            }, { passive: false });
+        }
+
+        // App State Management
+        let gameActive = false;
+        let currentTarget = null;
+        let score = 0;
+        let timer = 30;
+        let timerInterval = null;
+
+        function toggleGameMode() {
+            getAudioContext();
+            const sbView = document.getElementById('soundboardView');
+            const gView = document.getElementById('gameView');
+            const modeBtnText = document.getElementById('modeBtnText');
+
+            if (gView.classList.contains('hidden')) {
+                gView.classList.remove('hidden');
+                sbView.classList.add('hidden');
+                modeBtnText.textContent = "Soundboard";
+            } else {
+                gView.classList.add('hidden');
+                sbView.classList.remove('hidden');
+                modeBtnText.textContent = "Play Game";
+                endGame();
+            }
+        }
+
+        function startHorrorGame() {
+            getAudioContext();
+            score = 0;
+            timer = 30;
+            gameActive = true;
+            document.getElementById('gameScore').textContent = score;
+            document.getElementById('gameTimer').textContent = `${timer}s`;
+            document.getElementById('startGameBtn').textContent = "Restart Game";
+            
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timer--;
+                document.getElementById('gameTimer').textContent = `${timer}s`;
+                if (timer <= 0) endGame();
+            }, 1000);
+
+            nextRound();
+        }
+
+        function nextRound() {
+            const keys = Object.keys(horrorData);
+            currentTarget = keys[Math.floor(Math.random() * keys.length)];
+            
+            const isAudioPrompt = Math.random() > 0.4;
+            if (isAudioPrompt) {
+                document.getElementById('targetQuote').textContent = "🔊 Listen carefully...";
+                horrorData[currentTarget].playSound();
+            } else {
+                document.getElementById('targetQuote').textContent = `"${horrorData[currentTarget].quote}"`;
+            }
+        }
+
+        function makeGuess(key) {
+            if (!gameActive) return;
+
+            if (key === currentTarget) {
+                score += 10;
+                document.getElementById('gameScore').textContent = score;
+                showAlert("CORRECT! +10 Pts");
+                horrorData[key].playSound();
+                if (gameActive) nextRound();
+            } else {
+                triggerScreenVibe();
+                showAlert("WRONG MONSTER!");
+            }
+        }
+
+        function endGame() {
+            gameActive = false;
+            if (timerInterval) clearInterval(timerInterval);
+            document.getElementById('targetQuote').textContent = `Game Over! Score: ${score}`;
+            document.getElementById('startGameBtn').textContent = "Play Again";
+        }
+
+        // Setup All Event Listeners on Load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Mode toggle
+            bindFastClick(document.getElementById('modeToggleBtn'), toggleGameMode);
+            
+            // Monster buttons
+            document.querySelectorAll('.monster-btn').forEach(btn => {
+                bindFastClick(btn, () => handleHorrorClick(btn.dataset.monster));
+            });
+
+            // Ambient sound buttons
+            bindFastClick(document.getElementById('organBtn'), playOrganFx);
+            bindFastClick(document.getElementById('thunderBtn'), playThunderFx);
+
+            // Game buttons
+            bindFastClick(document.getElementById('startGameBtn'), startHorrorGame);
+            document.querySelectorAll('.game-guess-btn').forEach(btn => {
+                bindFastClick(btn, () => makeGuess(btn.dataset.guess));
+            });
+
+            // Toast close button
+            bindFastClick(document.getElementById('closeNotifierBtn'), hideNotifier);
+
+            // Unlock audio on first user touch anywhere
+            window.addEventListener('pointerdown', () => getAudioContext(), { once: true });
+        });
+
+        // Clock Display
+        function updateClock() {
+            const now = new Date();
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            hours = hours % 12 || 12;
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            document.getElementById('clockDisplay').textContent = `${hours}:${minutes}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
+</body>
+</html>
